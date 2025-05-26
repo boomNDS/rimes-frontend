@@ -8,17 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/navbar";
-// import CreatePostDialog from "@/components/create-post-dialog"
-// import BlogStats from "@/components/blog-stats"
-// import { usePosts } from "@/hooks/use-api"
 import type { BlogPost } from "@/lib/blog-data";
 import { blogPosts } from "@/lib/blog-data";
+import CreatePostDialog from "@/components/create-post-dialog";
 
 export default function Home() {
-  // const { posts, loading, error, createPost } = usePosts()
   const posts: BlogPost[] = blogPosts;
   const loading = false;
   const [showStats, setShowStats] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const getTextPreview = (content: string) => {
     try {
@@ -55,7 +53,7 @@ export default function Home() {
               {showStats ? "Hide Stats" : "Show Stats"}
             </Button>
             <Button
-              // onClick={() => setIsCreateDialogOpen(true)}
+              onClick={() => setIsCreateDialogOpen(true)}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -63,18 +61,6 @@ export default function Home() {
             </Button>
           </div>
         </div>
-
-        {/* {showStats && (
-          <div className="mb-8">
-            <BlogStats />
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800">Error: {error}</p>
-          </div>
-        )} */}
 
         {loading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -144,20 +130,19 @@ export default function Home() {
             <p className="text-gray-600 mb-4">
               Be the first to create a blog post!
             </p>
-            {/* <Button onClick={() => setIsCreateDialogOpen(true)}> */}
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Post
             </Button>
           </div>
         )}
+
+        <CreatePostDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onCreatePost={() => {}}
+        />
       </main>
-      {/*
-      <CreatePostDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onCreatePost={handleCreatePost}
-      /> */}
     </div>
   );
 }
