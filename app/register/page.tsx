@@ -1,8 +1,7 @@
 "use client";
 
 import type React from "react";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,26 +15,69 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Navbar from "@/components/navbar";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
+  const route = useRouter();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/check');
+        const data = await response.json();
+        setIsLoggedIn(data.isAuth);
+        setUsername(data.username || "");
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        setIsLoggedIn(false);
+        setUsername("");
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords don't match!");
       return;
     }
-    console.log("Registration attempt:", { name, email, password, rememberMe });
+
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password, rememberMe }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.error || "Failed to register");
+        return;
+      }
+
+      const data = await response.json();
+      if (data?.token) {
+        route.push("/");
+      } else {
+        setError("Failed to register");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError("Failed to register");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar isLoggedIn={isLoggedIn} username={username} />
 
       <main className="container mx-auto px-4 pt-24 pb-8">
         <div className="max-w-md mx-auto">
@@ -51,13 +93,13 @@ export default function RegisterPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Username</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
-                    id="name"
+                    id="username"
                     type="text"
                     placeholder="Enter your username"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </div>
@@ -110,6 +152,7 @@ export default function RegisterPage() {
                     Remember me
                   </Label>
                 </div>
+                {error && <p className="text-red-500 text-sm">{error}</p>}
 
                 <Button type="submit" className="w-full">
                   Create Account

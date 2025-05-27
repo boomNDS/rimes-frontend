@@ -16,15 +16,33 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Navbar from "@/components/navbar";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const route = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password, rememberMe });
+    // console.log("Login attempt:", { email, password, rememberMe });
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok) {
+      setError("Failed to authenticate user");
+      return;
+    }
+    const data = await response.json();
+    if (data?.token) {
+      route.push("/");
+    } else {
+      setError("Failed to authenticate user");
+    }
   };
 
   return (
@@ -83,6 +101,7 @@ export default function LoginPage() {
                   Sign In
                 </Button>
               </form>
+              {error && <p className="error">{error}</p>}
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">

@@ -22,27 +22,31 @@ import {
 } from "@/components/ui/dialog";
 import EditorComponent from "@/components/editor";
 import type { BlogPost } from "@/lib/blog-data";
+import Link from "next/link";
 
 interface CreatePostDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreatePost: (post: Omit<BlogPost, "id" | "createdAt">) => void;
+  isLoggedIn: boolean;
+  username: string;
 }
 
 export default function CreatePostDialog({
   open,
   onOpenChange,
   onCreatePost,
+  isLoggedIn,
+  username,
 }: CreatePostDialogProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
-  const [author, setAuthor] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !content || !category || !author) {
+    if (!title || !content || !category) {
       alert("Please fill in all fields");
       return;
     }
@@ -51,15 +55,41 @@ export default function CreatePostDialog({
       title,
       content,
       category,
-      author,
+      author: username,
     });
 
     // Reset form
     setTitle("");
     setContent("");
     setCategory("");
-    setAuthor("");
   };
+
+  if (!isLoggedIn) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-[50rem] max-w-none max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Login Required</DialogTitle>
+            <DialogDescription>
+              You must be logged in to create a post.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Link href="/login">
+              <Button>Login</Button>
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,8 +119,8 @@ export default function CreatePostDialog({
               <Input
                 id="author"
                 placeholder="Your name"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
+                value={username}
+                disabled
                 required
               />
             </div>
